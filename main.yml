@@ -4,6 +4,7 @@
 
   vars:
     sysstat_config_file_debian: /etc/default/sysstat
+    sysstat_interval: "5"
 
   tasks:
 

@@ -8,21 +8,19 @@ It ensures the package is installed, enabled, configured, and properly collectin
 
 ## Tasks:
 
-- Check if sysstat is already installed  
-- Install sysstat package if not present  
+- Install **sysstat** package if not present  
 - Enable and start sysstat service  
-- Configure sysstat (Debian / RedHat families)  
-- Restart service after configuration  
-- Configure cron job for data collection (Debian)  
-- Enable systemd timer (if available)  
-- Validate installation using `sar -V`  
+- Configure sysstat (Debian only)  
+- Create systemd override for **sysstat-collect.timer**  
+- Configure collection interval using `sysstat_interval`  
+- Restart sysstat timer if configuration changes  
 
 ---
 
 ## Supported Operating Systems
 
 - Debian / Ubuntu  
-- RedHat / Fedora / CentOS  
+- RedHat / Fedora 
 
 ---
 
@@ -32,7 +30,7 @@ It ensures the package is installed, enabled, configured, and properly collectin
 1. **Inventory:** create from file or manually  
 2. **Credential:** SSH username/password + sudo  
 
-No survey is required because this playbook does not depend on user-defined variables.
+This playbook **requires a survey variable** for the collection interval (`sysstat_interval`) rather than hardcoding it in the playbook.  
 
 ---
 
@@ -41,10 +39,7 @@ No survey is required because this playbook does not depend on user-defined vari
 ### Playbook Variables (already defined inside the playbook)
 
 - `sysstat_config_file_debian` → `/etc/default/sysstat`  
-- `sysstat_config_file_redhat` → `/etc/sysconfig/sysstat`  
-- `sysstat_enabled_value` → `"true"`  
 
----
 
 ### Hosts variables : (in hosts.ini or create manually in AAP) (inventory related)
 
