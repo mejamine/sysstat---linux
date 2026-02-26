@@ -4,44 +4,17 @@
 
   vars:
     sysstat_config_file_debian: /etc/default/sysstat
-    sysstat_config_file_redhat: /etc/sysconfig/sysstat
-    sysstat_enabled_value: "true"
 
   tasks:
 
-    # --------------------------------------------------
-    # Check Presence
-    # --------------------------------------------------
-    - name: Check if sysstat is installed
-      package_facts:
-        manager: auto
-
-    - name: Show if sysstat is already installed
-      debug:
-        msg: "sysstat is already installed"
-      when: "'sysstat' in ansible_facts.packages"
-
-    # --------------------------------------------------
     # Package Install
-    # --------------------------------------------------
     - name: Install sysstat package if not present
       package:
         name: sysstat
         state: present
 
-    # --------------------------------------------------
     # Enable Service
-    # --------------------------------------------------
-    - name: Enable and start sysstat service
-      systemd:
-        name: sysstat
-        enabled: true
-        state: started
-      when: ansible_service_mgr == "systemd"
 
-    # --------------------------------------------------
-    # Configure Settings
-    # --------------------------------------------------
     - name: Configure sysstat (Debian family)
       lineinfile:
         path: "{{ sysstat_config_file_debian }}"
@@ -49,47 +22,36 @@
         line: 'ENABLED="true"'
       when: ansible_os_family == "Debian"
 
-    - name: Configure sysstat (RedHat family)
-      lineinfile:
-        path: "{{ sysstat_config_file_redhat }}"
-        regexp: '^ENABLED='
-        line: 'ENABLED="true"'
-      when: ansible_os_family == "RedHat"
-
-    # Restart if config changed
-    - name: Restart sysstat after configuration
+    - name: Enable and start sysstat service
       systemd:
         name: sysstat
-        state: restarted
-      when: ansible_service_mgr == "systemd"
-
-    # --------------------------------------------------
-    # Configure Cron / Timer
-    # --------------------------------------------------
-    - name: Ensure sysstat collection cron exists (Debian)
-      cron:
-        name: "sysstat data collection"
-        user: root
-        job: "/usr/lib/sysstat/sa1 1 1"
-        minute: "*/10"
-      when: ansible_os_family == "Debian"
-
-    - name: Enable sysstat timer (systemd systems)
-      systemd:
-        name: sysstat-collect.timer
         enabled: true
         state: started
-      ignore_errors: true
-      when: ansible_service_mgr == "systemd"
 
-    # --------------------------------------------------
-    # Validation
-    # --------------------------------------------------
-    - name: Validate sysstat installation (check sar command)
-      command: sar -V
-      register: sar_version
-      changed_when: false
+    # Create systemd override directory
 
-    - name: Show sysstat version
-      debug:
-        var: sar_version.stdout
+    - name: Create sysstat timer override directory
+      file:
+        path: /etc/systemd/system/sysstat-collect.timer.d
+        state: directory
+        mode: '0755'
+
+    # Configure collection interval
+    
+    - name: Configure sysstat collection interval
+      copy:
+        dest: /etc/systemd/system/sysstat-collect.timer.d/override.conf
+        content: |
+          [Timer]
+          OnCalendar=
+          OnCalendar=*:00/{{ sysstat_interval }}
+      notify: Restart sysstat timer
+
+
+  handlers:
+    - name: Restart sysstat timer
+      systemd:
+        daemon_reload: true
+        name: sysstat-collect.timer
+        state: restarted
+
