@@ -4,7 +4,6 @@
 
   vars:
     sysstat_config_file_debian: /etc/default/sysstat
-    sysstat_interval: "5"
 
   tasks:
 
@@ -29,30 +28,5 @@
         enabled: true
         state: started
 
-    # Create systemd override directory
 
-    - name: Create sysstat timer override directory
-      file:
-        path: /etc/systemd/system/sysstat-collect.timer.d
-        state: directory
-        mode: '0755'
-
-    # Configure collection interval
-    
-    - name: Configure sysstat collection interval
-      copy:
-        dest: /etc/systemd/system/sysstat-collect.timer.d/override.conf
-        content: |
-          [Timer]
-          OnCalendar=
-          OnCalendar=*:00/{{ sysstat_interval }}
-      notify: Restart sysstat timer
-
-
-  handlers:
-    - name: Restart sysstat timer
-      systemd:
-        daemon_reload: true
-        name: sysstat-collect.timer
-        state: restarted
 
