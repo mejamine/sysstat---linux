@@ -1,51 +1,44 @@
-# Sysstat Installation and Configuration
+# Sysstat Installation and Configuration (Debian Family)
 
-This repository includes a playbook that installs and configures **sysstat** on Linux systems (Debian and RedHat families).  
+This repository includes a playbook that installs and configures **sysstat** on Linux systems.
 
-It ensures the package is installed, enabled, configured, and properly collecting performance statistics.
+The playbook ensures that the `sysstat` package is installed, properly enabled (for Debian-based systems), and that the service is started.
 
 ---
 
 ## Tasks:
 
-- Install **sysstat** package if not present  
-- Enable and start sysstat service  
-- Configure sysstat (Debian only)  
-- Create systemd override for **sysstat-collect.timer**  
-- Configure collection interval using `sysstat_interval`  
-- Restart sysstat timer if configuration changes  
+- Install `sysstat` package if not present  
+- Configure sysstat for Debian family systems  
+- Enable and start `sysstat` service  
 
 ---
 
 ## Supported Operating Systems
 
-- Debian / Ubuntu  
-- RedHat / Fedora 
+### Supported:
+- Debian  
+- Ubuntu  
+- Other Debian-based distributions  
+
+⚠️ The configuration step (`ENABLED="true"`) is applied only on Debian family systems.
 
 ---
 
 ## Using in AAP
 
 ### General Config :
+
 1. **Inventory:** create from file or manually  
 2. **Credential:** SSH username/password + sudo  
 
-This playbook **requires a survey variable** for the collection interval (`sysstat_interval`) rather than hardcoding it in the playbook.  
+No survey is required for this playbook.
 
 ---
 
 ## Variables
 
-### Playbook Variables (already defined inside the playbook)
+### Playbook Variables (defined inside the playbook)
 
-- `sysstat_config_file_debian` → `/etc/default/sysstat`  
-
-
-### Hosts variables : (in hosts.ini or create manually in AAP) (inventory related)
-
-- `ansible_host` – ip address of the host  
-- `ansible_user` – username of the host user  
-- `ansible_os_family` – OS family (Debian / RedHat)  
-
-
-
+```yaml
+sysstat_config_file_debian: /etc/default/sysstat
